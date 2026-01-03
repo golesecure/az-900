@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure MCQ Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .quiz-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .progress-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .question-counter {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .question {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .option input[type="radio"] {
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+            accent-color: #667eea;
+        }
+
+        .option label {
+            cursor: pointer;
+            flex: 1;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .option.selected {
+            background: #e3e8ff;
+            border-color: #667eea;
+        }
+
+        .option.correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .option.incorrect {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 5px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.correct-result {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .result.incorrect-result {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .final-score {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .score-display {
+            font-size: 48px;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .score-message {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Azure Quiz</h1>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="question-counter" id="questionCounter"></div>
+        
+        <div id="quizContent">
+            <div class="question" id="question"></div>
+
+            <div class="options" id="options"></div>
+
+            <div class="result" id="result"></div>
+
+            <div class="btn-container">
+                <button class="btn" onclick="submitAnswer()" id="submitBtn">Submit Answer</button>
+                <button class="btn btn-secondary" onclick="nextQuestion()" id="nextBtn" style="display: none;">Next Question</button>
+            </div>
+        </div>
+
+        <div id="finalScore" style="display: none;">
+            <div class="final-score">
+                <h2>Quiz Complete! 🎉</h2>
+                <div class="score-display" id="scoreDisplay"></div>
+                <div class="score-message" id="scoreMessage"></div>
+                <button class="btn" onclick="restartQuiz()">Restart Quiz</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // ADD YOUR QUESTIONS HERE
+        // ============================================
+        const questions = [
+            {
+    question: "What is Cloud Computing?",
+    options: [
+        "A. A type of weather forecasting system",
+        "B. Computing services delivered over the internet",
+        "C. A physical data center",
+        "D. A type of computer hardware"
+    ],
+    correctAnswer: "B",
+    explanation: "Cloud Computing refers to the delivery of computing services (servers, storage, databases, networking, software) over the internet (the cloud) on a pay-as-you-go basis."
+},
+{
+    question: "In Traditional IT, who owns and maintains the physical servers?",
+    options: [
+        "A. Cloud service provider",
+        "B. Internet service provider",
+        "C. The organization itself",
+        "D. Microsoft"
+    ],
+    correctAnswer: "C",
+    explanation: "In Traditional IT infrastructure, the organization owns, purchases, and maintains all physical servers and equipment in their own data center."
+},
+{
+    question: "What is the primary difference between Traditional IT and Cloud Computing?",
+    options: [
+        "A. Programming languages used",
+        "B. Ownership and location of infrastructure",
+        "C. Type of applications",
+        "D. Number of users"
+    ],
+    correctAnswer: "B",
+    explanation: "The main difference is that Traditional IT involves owning and maintaining physical infrastructure on-premises, while Cloud Computing uses rented resources accessed over the internet."
+},
+{
+    question: "How long does it typically take to deploy a server in Cloud Computing?",
+    options: [
+        "A. Several weeks",
+        "B. Several months",
+        "C. Minutes",
+        "D. Days"
+    ],
+    correctAnswer: "C",
+    explanation: "Cloud Computing allows you to deploy servers and resources in minutes with just a few clicks, compared to weeks or months in Traditional IT."
+},
+{
+    question: "What is the cost model in Traditional IT?",
+    options: [
+        "A. Pay-as-you-go",
+        "B. Monthly subscription",
+        "C. High upfront capital investment",
+        "D. Free"
+    ],
+    correctAnswer: "C",
+    explanation: "Traditional IT requires high upfront capital expenditure (CapEx) to purchase servers, storage, and networking equipment before you can use them."
+},
+{
+    question: "Which payment model does Cloud Computing follow?",
+    options: [
+        "A. One-time purchase",
+        "B. Pay only for what you use",
+        "C. Annual fixed cost",
+        "D. No payment required"
+    ],
+    correctAnswer: "B",
+    explanation: "Cloud Computing follows a pay-as-you-go model (OpEx), where you only pay for the resources you actually use, similar to an electricity bill."
+},
+{
+    question: "In Traditional IT, what happens if you need more server capacity?",
+    options: [
+        "A. Instant automatic scaling",
+        "B. Must purchase and install new hardware",
+        "C. Contact cloud provider",
+        "D. Download more resources"
+    ],
+    correctAnswer: "B",
+    explanation: "In Traditional IT, scaling requires purchasing new physical hardware, installing it, and configuring it - a process that takes weeks or months."
+},
+{
+    question: "Who is responsible for hardware maintenance in Cloud Computing?",
+    options: [
+        "A. The customer organization",
+        "B. The cloud service provider",
+        "C. Third-party vendors",
+        "D. Government agencies"
+    ],
+    correctAnswer: "B",
+    explanation: "In Cloud Computing, the cloud service provider (like Azure, AWS) is responsible for maintaining, updating, and securing the physical hardware infrastructure."
+},
+{
+    question: "What is a major advantage of Cloud Computing over Traditional IT?",
+    options: [
+        "A. Requires more staff",
+        "B. Higher upfront costs",
+        "C. Ability to scale resources quickly",
+        "D. More physical space needed"
+    ],
+    correctAnswer: "C",
+    explanation: "Cloud Computing allows organizations to scale resources up or down quickly based on demand, without purchasing additional hardware."
+},
+{
+    question: "Which scenario best describes Traditional IT infrastructure?",
+    options: [
+        "A. Renting servers from a provider over the internet",
+        "B. Using Gmail for email services",
+        "C. Owning physical servers in your office building",
+        "D. Storing files on Google Drive"
+    ],
+    correctAnswer: "C",
+    explanation: "Traditional IT means owning and maintaining physical servers and infrastructure in your own premises or data center, with full responsibility for management and maintenance."
+}
+            // ADD MORE QUESTIONS HERE following the same format
+        ];
+
+        // ============================================
+        // QUIZ LOGIC (No need to modify below)
+        // ============================================
+        let currentQuestionIndex = 0;
+        let selectedAnswer = null;
+        let score = 0;
+        let userAnswers = [];
+
+        function loadQuestion() {
+            const current = questions[currentQuestionIndex];
+            const questionEl = document.getElementById('question');
+            const optionsEl = document.getElementById('options');
+            const questionCounter = document.getElementById('questionCounter');
+            const progressFill = document.getElementById('progressFill');
+            
+            questionCounter.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            progressFill.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+            
+            questionEl.textContent = current.question;
+            
+            optionsEl.innerHTML = '';
+            current.options.forEach((option, index) => {
+                const letter = option.charAt(0);
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.onclick = () => selectOption(optionDiv, letter);
+                optionDiv.innerHTML = `
+                    <input type="radio" name="answer" id="option${letter}" value="${letter}">
+                    <label for="option${letter}">${option}</label>
+                `;
+                optionsEl.appendChild(optionDiv);
+            });
+            
+            selectedAnswer = null;
+            document.getElementById('result').className = 'result';
+            document.getElementById('submitBtn').style.display = 'block';
+            document.getElementById('nextBtn').style.display = 'none';
+        }
+
+        function selectOption(element, value) {
+            const radio = element.querySelector('input[type="radio"]');
+            radio.checked = true;
+            selectedAnswer = value;
+            
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            element.classList.add('selected');
+        }
+
+        function submitAnswer() {
+            if (!selectedAnswer) {
+                alert('Please select an answer!');
+                return;
+            }
+
+            const current = questions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            const resultDiv = document.getElementById('result');
+            const submitBtn = document.getElementById('submitBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            userAnswers[currentQuestionIndex] = selectedAnswer;
+
+            options.forEach(option => {
+                option.style.pointerEvents = 'none';
+                const radio = option.querySelector('input[type="radio"]');
+                
+                if (radio.value === current.correctAnswer) {
+                    option.classList.add('correct');
+                }
+                
+                if (radio.value === selectedAnswer && selectedAnswer !== current.correctAnswer) {
+                    option.classList.add('incorrect');
+                }
+            });
+
+            if (selectedAnswer === current.correctAnswer) {
+                score++;
+                resultDiv.className = 'result correct-result show';
+                resultDiv.innerHTML = `
+                    <div>✓ Correct!</div>
+                    <div class="explanation">${current.explanation}</div>
+                `;
+            } else {
+                resultDiv.className = 'result incorrect-result show';
+                resultDiv.innerHTML = `
+                    <div>✗ Incorrect</div>
+                    <div class="explanation">The correct answer is ${current.correctAnswer}. ${current.explanation}</div>
+                `;
+            }
+
+            submitBtn.style.display = 'none';
+            nextBtn.style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        function showFinalScore() {
+            document.getElementById('quizContent').style.display = 'none';
+            document.getElementById('finalScore').style.display = 'block';
+            
+            const percentage = Math.round((score / questions.length) * 100);
+            document.getElementById('scoreDisplay').textContent = `${score} / ${questions.length}`;
+            
+            let message = '';
+            if (percentage === 100) {
+                message = 'Perfect score! Outstanding! 🌟';
+            } else if (percentage >= 80) {
+                message = 'Excellent work! 🎯';
+            } else if (percentage >= 60) {
+                message = 'Good job! Keep learning! 📚';
+            } else {
+                message = 'Keep practicing! You\'ll do better next time! 💪';
+            }
+            
+            document.getElementById('scoreMessage').textContent = message;
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = [];
+            document.getElementById('quizContent').style.display = 'block';
+            document.getElementById('finalScore').style.display = 'none';
+            loadQuestion();
+        }
+
+        // Initialize quiz
+        loadQuestion();
+    </script>
+</body>
+</html>
